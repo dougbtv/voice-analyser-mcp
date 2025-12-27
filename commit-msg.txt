@@ -1,1 +1,1 @@
-chore: add npmrc with auth token
+docs: README leads with npx installation
