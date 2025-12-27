@@ -1,0 +1,42 @@
+{
+  "name": "mcp-voice-analysis",
+  "version": "1.0.0",
+  "description": "MCP server for automatic tone-of-voice analysis from published writing corpus",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-voice-analysis": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "dev": "node --loader ts-node/esm src/index.ts"
+  },
+  "keywords": [
+    "mcp",
+    "voice-analysis",
+    "tone-of-voice",
+    "content",
+    "llm"
+  ],
+  "author": "Richard Baxter",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "cheerio": "^1.0.0",
+    "compromise": "^14.14.0",
+    "fast-xml-parser": "^4.5.0",
+    "natural": "^8.0.1",
+    "node-fetch": "^3.3.2",
+    "turndown": "^7.2.0",
+    "wink-eng-lite-web-model": "^1.8.1",
+    "wink-nlp": "^2.4.0",
+    "wink-nlp-utils": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/natural": "^5.1.5",
+    "@types/node": "^22.10.1",
+    "@types/turndown": "^5.0.5",
+    "typescript": "^5.7.2"
+  }
+}
