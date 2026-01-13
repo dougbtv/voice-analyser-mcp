@@ -11,7 +11,10 @@ research/
 # Development artifacts
 commit-*.bat
 test-*.ts
+test-*.js
 cleanup*.bat
+temp-*.bat
+version-bump.bat
 
 # IDE
 .vscode/
