@@ -147,7 +147,7 @@ These patterns are invisible whilst writing but obvious when absent. That's why 
 
 - First-person density (0.6 per 100 words typical for authority voice)
 - Hedging language frequency ("I think", "seems to")
-- Equipment specificity ("my Simucube 2 Pro" vs "a wheelbase")
+- Specific references ("my Model X device" vs "a device")
 
 ### N-Gram Analysis
 
