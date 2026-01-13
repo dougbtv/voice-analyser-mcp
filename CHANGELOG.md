@@ -5,6 +5,20 @@ All notable changes to Voice Analysis MCP Server will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-01-13
+
+### Changed
+- **Repository Depersonalization**: Removed all personal examples and internal development docs
+- Replaced specific examples (personal names, domains) with generic placeholders
+- Cleaned up temporary development files
+- Streamlined QUICKSTART.md (283→109 lines) with universal examples
+- Updated .gitignore to exclude future temp files
+
+### Documentation
+- All examples now use generic "author-name" and "example.com"
+- Removed internal handover and scope documents
+- Professional structure ready for public use
+
 ## [1.0.0] - 2025-12-01
 
 ### Added
