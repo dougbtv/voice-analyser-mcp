@@ -26,6 +26,12 @@ import type { WordNGramAnalysis } from '../analyzers/word-ngrams.js';
 import type { POSNGramAnalysis } from '../analyzers/pos-ngrams.js';
 import type { AntiMechanicalAnalysis } from '../analyzers/anti-mechanical.js';
 import type { InformationDensityAnalysis } from '../analyzers/information-density.js';
+// v2.0 Anti-detection types
+import type { LexicalDiversityAnalysis } from '../analyzers/lexical-diversity.js';
+import type { SyntacticPatternAnalysis } from '../analyzers/syntactic-patterns.js';
+import type { ExpressionMarkerAnalysis } from '../analyzers/expression-markers.js';
+import type { ClusteringAnalysis } from '../analyzers/clustering.js';
+import type { DetectionRiskReport } from '../analyzers/detection-risk.js';
 
 export interface EnhancedGuideParams {
   corpus_name: string;
@@ -36,6 +42,23 @@ export interface EnhancedGuideResult {
   success: boolean;
   llm_guide_path?: string;
   human_guide_path?: string;
+}
+
+// v2.0 consolidated analysis structure
+export interface ConsolidatedAnalysisV2 {
+  version: string;
+  analyzedAt: string;
+  corpusInfo: {
+    name: string;
+    articleCount: number;
+    totalWords: number;
+    analysisType: string;
+  };
+  lexicalDiversity: LexicalDiversityAnalysis;
+  syntacticPatterns: SyntacticPatternAnalysis;
+  expressionMarkers: ExpressionMarkerAnalysis;
+  clusteringPatterns: ClusteringAnalysis;
+  detectionRisk: DetectionRiskReport;
 }
 
 export async function generateEnhancedGuide(params: EnhancedGuideParams): Promise<EnhancedGuideResult> {
@@ -60,6 +83,9 @@ export async function generateEnhancedGuide(params: EnhancedGuideParams): Promis
   const posNGrams = await loadJSON<POSNGramAnalysis>(analysisDir, 'pos-ngrams.json', true);
   const antiMechanical = await loadJSON<AntiMechanicalAnalysis>(analysisDir, 'anti-mechanical.json', true);
   const informationDensity = await loadJSON<InformationDensityAnalysis>(analysisDir, 'information-density.json', true);
+  
+  // Load v2.0 consolidated analysis
+  const v2Analysis = await loadJSON<ConsolidatedAnalysisV2>(analysisDir, `${corpus_name}-analysis-v2.json`, true);
   
   const metadata = JSON.parse(
     await fs.readFile(path.join(corpusDir, 'corpus.json'), 'utf-8')
@@ -90,6 +116,7 @@ export async function generateEnhancedGuide(params: EnhancedGuideParams): Promis
       posNGrams,
       antiMechanical,
       informationDensity,
+      v2Analysis,
       examples
     );
     
@@ -168,6 +195,7 @@ function generateSoulFirstLLMGuide(
   posNGrams: POSNGramAnalysis | null,
   antiMechanical: AntiMechanicalAnalysis | null,
   informationDensity: InformationDensityAnalysis | null,
+  v2Analysis: ConsolidatedAnalysisV2 | null,
   examples: string[]
 ): string {
   const lines: string[] = [];
@@ -710,6 +738,218 @@ function generateSoulFirstLLMGuide(
   lines.push('');
   lines.push('*These numbers VALIDATE the voice. They don\'t CREATE it.*');
   lines.push('');
+  
+  // ============================================================
+  // v2.0 ANTI-DETECTION METRICS (CRITICAL)
+  // ============================================================
+  
+  if (v2Analysis) {
+    lines.push('---');
+    lines.push('');
+    lines.push('## 🚨 AI DETECTION AVOIDANCE (v2.0 Metrics)');
+    lines.push('');
+    lines.push('**Based on peer-reviewed research (Carnegie Mellon PNAS 2025, AAAI 2025)**');
+    lines.push('');
+    
+    // Overall risk assessment
+    const risk = v2Analysis.detectionRisk;
+    const riskEmoji = risk.overallRisk === 'safe' ? '✅' : risk.overallRisk === 'moderate' ? '⚠️' : '❌';
+    lines.push(`**Overall Detection Risk:** ${riskEmoji} ${risk.overallRisk.toUpperCase()} (score: ${risk.riskScore.toFixed(0)}/100)`);
+    lines.push('');
+    lines.push(risk.summary);
+    lines.push('');
+    
+    // Critical factors if any
+    if (risk.criticalFactors.length > 0) {
+      lines.push('### ❌ CRITICAL RISKS (Fix Immediately)');
+      lines.push('');
+      for (const factor of risk.criticalFactors) {
+        lines.push(`**${factor.metric}:**`);
+        lines.push(`- Corpus: ${factor.corpusValue.toFixed(2)}`);
+        lines.push(`- AI typical: ${factor.typicalAIValue.toFixed(2)}`);
+        lines.push(`- Human typical: ${factor.humanBenchmark.toFixed(2)}`);
+        lines.push(`- **Action:** ${factor.recommendation}`);
+        lines.push('');
+      }
+    }
+    
+    // Action items
+    if (risk.actionItems.length > 0) {
+      lines.push('### Action Items');
+      lines.push('');
+      for (const action of risk.actionItems) {
+        lines.push(`- ${action}`);
+      }
+      lines.push('');
+    }
+    
+    // ====== SENTENCE LENGTH CLUSTERING (MOST CRITICAL) ======
+    const clustering = v2Analysis.clusteringPatterns;
+    lines.push('---');
+    lines.push('');
+    lines.push('### 🎯 SENTENCE LENGTH: Clustering Pattern (NOT Uniform Distribution)');
+    lines.push('');
+    lines.push('⚠️ **CRITICAL: AI Detection Risk**');
+    lines.push(clustering.sentenceLengthClusters.guidance);
+    lines.push('');
+    
+    // Distribution buckets
+    lines.push('**Observed Distribution:**');
+    lines.push('');
+    for (const bucket of clustering.sentenceLengthClusters.distribution) {
+      lines.push(`- ${bucket.label}: **${bucket.percentage.toFixed(0)}%** (${bucket.count} sentences)`);
+    }
+    lines.push('');
+    
+    // Burstiness coefficient
+    const burstiness = clustering.sentenceLengthClusters.burstiness;
+    const burstyEmoji = burstiness > 0.25 ? '✅' : burstiness > 0 ? '⚠️' : '❌';
+    lines.push(`**Burstiness Coefficient:** ${burstyEmoji} ${burstiness.toFixed(2)}`);
+    lines.push('');
+    lines.push('- Range: -1 (perfectly uniform) to +1 (extremely bursty)');
+    lines.push('- AI typical: -0.15 (uniform - BAD)');
+    lines.push('- Human typical: 0.35 (bursty - GOOD)');
+    lines.push('');
+    
+    // How to apply
+    lines.push('**How to Apply (CRITICAL):**');
+    lines.push('');
+    lines.push('1. Write 2-3 consecutive short sentences (8-12 words)');
+    lines.push('2. Follow with 1-2 long sentences (25-40 words)');
+    lines.push('3. Sprinkle fragments (<5 words) for emphasis');
+    lines.push('4. **NEVER** maintain same length for 4+ sentences');
+    lines.push('');
+    
+    // Example clusters
+    if (clustering.sentenceLengthClusters.clusters.length > 0) {
+      lines.push('**Example Cluster Pattern from Corpus:**');
+      lines.push('');
+      for (const cluster of clustering.sentenceLengthClusters.clusters.slice(0, 2)) {
+        lines.push(`- Cluster of ${cluster.size} sentences: ${cluster.min}-${cluster.max} words (avg: ${cluster.mean.toFixed(1)})`);
+      }
+      lines.push('');
+    }
+    
+    // ====== EXPRESSION MARKERS ======
+    const expression = v2Analysis.expressionMarkers;
+    lines.push('---');
+    lines.push('');
+    lines.push('### Expression Markers (Human Patterns)');
+    lines.push('');
+    
+    // Fragments
+    const fragRisk = expression.fragments.detectionRisk;
+    const fragEmoji = fragRisk === 'safe' ? '✅' : fragRisk === 'moderate' ? '⚠️' : '❌';
+    lines.push(`**Sentence Fragments:** ${fragEmoji} ${fragRisk.toUpperCase()}`);
+    lines.push(`- Rate: ${expression.fragments.rate.toFixed(1)}% (${expression.fragments.count} fragments)`);
+    lines.push(`- ${expression.fragments.guidance}`);
+    if (expression.fragments.examples.length > 0) {
+      lines.push(`- Examples: ${expression.fragments.examples.slice(0, 3).join(' | ')}`);
+    }
+    lines.push('');
+    
+    // Mid-sentence asides
+    lines.push('**Mid-Sentence Asides:**');
+    lines.push(`- Rate: ${expression.midSentenceAsides.rate.toFixed(1)}%`);
+    lines.push(`- Types: ${expression.midSentenceAsides.types.parenthetical} parenthetical, ${expression.midSentenceAsides.types.dashes} dashes, ${expression.midSentenceAsides.types.commaAsides} comma asides`);
+    lines.push(`- ${expression.midSentenceAsides.guidance}`);
+    if (expression.midSentenceAsides.examples.length > 0) {
+      lines.push(`- Examples: ${expression.midSentenceAsides.examples.slice(0, 2).join(' | ')}`);
+    }
+    lines.push('');
+    
+    // Contractions
+    lines.push('**Contractions:**');
+    lines.push(`- Rate: ${expression.contractions.rate.toFixed(2)} per 100 words`);
+    if (expression.contractions.examples.length > 0) {
+      lines.push(`- Examples: ${expression.contractions.examples.slice(0, 10).join(', ')}`);
+    }
+    lines.push('');
+    
+    // Rhetorical questions
+    if (expression.rhetoricalQuestions.count > 0) {
+      lines.push(`**Rhetorical Questions:**`);
+      lines.push(`- Rate: ${expression.rhetoricalQuestions.rate.toFixed(2)} per 1000 words (${expression.rhetoricalQuestions.count} total)`);
+      lines.push(`- ${expression.rhetoricalQuestions.guidance}`);
+      lines.push('');
+    }
+    
+    // ====== SYNTACTIC PATTERN WARNINGS ======
+    const syntactic = v2Analysis.syntacticPatterns;
+    lines.push('---');
+    lines.push('');
+    lines.push('### ⚠️ Syntactic Pattern Warnings');
+    lines.push('');
+    
+    // Present participles
+    const ppRisk = syntactic.presentParticiples.detectionRisk;
+    const ppEmoji = ppRisk === 'safe' ? '✅' : ppRisk === 'moderate' ? '⚠️' : '❌';
+    lines.push(`**Present Participles (-ing verbs):** ${ppEmoji} ${ppRisk.toUpperCase()}`);
+    lines.push(`- Rate: ${syntactic.presentParticiples.rate.toFixed(2)}% (${syntactic.presentParticiples.count} occurrences)`);
+    lines.push(`- ${syntactic.presentParticiples.guidance}`);
+    if (syntactic.presentParticiples.examples.length > 0) {
+      lines.push(`- Examples: ${syntactic.presentParticiples.examples.slice(0, 3).join(', ')}`);
+    }
+    lines.push('');
+    
+    // Nominalizations
+    const nomRisk = syntactic.nominalizations.detectionRisk;
+    const nomEmoji = nomRisk === 'safe' ? '✅' : nomRisk === 'moderate' ? '⚠️' : '❌';
+    lines.push(`**Nominalizations (Abstract Nouns):** ${nomEmoji} ${nomRisk.toUpperCase()}`);
+    lines.push(`- Rate: ${syntactic.nominalizations.rate.toFixed(2)}%`);
+    lines.push(`- ${syntactic.nominalizations.guidance}`);
+    if (syntactic.nominalizations.examples.length > 0) {
+      lines.push(`- Examples: ${syntactic.nominalizations.examples.slice(0, 3).join(', ')}`);
+    }
+    lines.push('');
+    
+    // Passive voice
+    const pvRisk = syntactic.passiveVoice.detectionRisk;
+    const pvEmoji = pvRisk === 'safe' ? '✅' : pvRisk === 'moderate' ? '⚠️' : '❌';
+    lines.push(`**Passive Voice:** ${pvEmoji} ${pvRisk.toUpperCase()}`);
+    lines.push(`- Total: ${syntactic.passiveVoice.total} occurrences`);
+    lines.push(`- Agentless passive: ${syntactic.passiveVoice.agentlessRate.toFixed(2)}% of sentences`);
+    lines.push(`- ${syntactic.passiveVoice.guidance}`);
+    if (syntactic.passiveVoice.examples.length > 0) {
+      lines.push(`- Examples: ${syntactic.passiveVoice.examples.slice(0, 2).join(' | ')}`);
+    }
+    lines.push('');
+    
+    // POS ratios
+    lines.push('**Part-of-Speech Ratios:**');
+    lines.push('');
+    lines.push('| POS | Rate per 100 words | AI Detection Note |');
+    lines.push('|-----|-------------------|------------------|');
+    lines.push(`| Adjectives | ${syntactic.posRatios.adjectives.toFixed(1)} | AI under-uses |`);
+    lines.push(`| Adverbs | ${syntactic.posRatios.adverbs.toFixed(1)} | AI under-uses |`);
+    lines.push(`| Nouns | ${syntactic.posRatios.nouns.toFixed(1)} | AI over-uses |`);
+    lines.push(`| Determiners | ${syntactic.posRatios.determiners.toFixed(1)} | AI over-uses |`);
+    lines.push(`| Prepositions | ${syntactic.posRatios.prepositions.toFixed(1)} | AI over-uses |`);
+    lines.push('');
+    
+    // ====== LEXICAL DIVERSITY ======
+    const lexical = v2Analysis.lexicalDiversity;
+    lines.push('---');
+    lines.push('');
+    lines.push('### Lexical Diversity (Vocabulary Richness)');
+    lines.push('');
+    lines.push(`**Type-Token Ratio:** ${lexical.typeTokenRatio.toFixed(3)}`);
+    lines.push(`- ${lexical.aiDetectionContext.ttrGuidance}`);
+    lines.push('');
+    lines.push(`**Hapax Legomena (Words Used Once):**`);
+    lines.push(`- Count: ${lexical.hapaxLegomena.count}`);
+    lines.push(`- Rate: ${lexical.hapaxLegomena.rate.toFixed(1)}%`);
+    lines.push(`- ${lexical.aiDetectionContext.hapaxGuidance}`);
+    lines.push('');
+    lines.push(`**Bigram Uniqueness:** ${lexical.bigramUniqueness.toFixed(3)}`);
+    lines.push(`- ${lexical.aiDetectionContext.bigramGuidance}`);
+    lines.push('');
+    
+    lines.push('---');
+    lines.push('');
+  }
+  
+  // Core metrics table (original)
   
   // Core metrics table
   lines.push('### Core Metrics');
