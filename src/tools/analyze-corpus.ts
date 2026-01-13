@@ -259,6 +259,30 @@ export async function analyzeCorpus(params: AnalyzeCorpusParams): Promise<Analyz
       'utf-8'
     );
     
+    // ===== CONSOLIDATED v2.0 ANALYSIS JSON =====
+    // Save comprehensive analysis including all v2.0 metrics
+    const consolidatedAnalysis = {
+      version: '2.0.0',
+      analyzedAt: new Date().toISOString(),
+      corpusInfo: {
+        name: corpus_name,
+        articleCount: articleCount,
+        totalWords: combinedText.split(/\s+/).length,
+        analysisType: analysis_type
+      },
+      lexicalDiversity: lexicalDiversityAnalysis,
+      syntacticPatterns: syntacticPatternsAnalysis,
+      expressionMarkers: expressionMarkersAnalysis,
+      clusteringPatterns: clusteringPatternsAnalysis,
+      detectionRisk: detectionRiskAnalysis
+    };
+    
+    await fs.writeFile(
+      path.join(analysisDir, `${corpus_name}-analysis-v2.json`),
+      JSON.stringify(consolidatedAnalysis, null, 2),
+      'utf-8'
+    );
+    
     console.error('✅ v2.0 anti-detection analysis complete');
   }
   
