@@ -16,6 +16,12 @@ import { analyzeWordNGrams, summarizeWordNGrams } from '../analyzers/word-ngrams
 import { analyzePOSNGrams, summarizePOSNGrams } from '../analyzers/pos-ngrams.js';
 import { analyzeAntiMechanical } from '../analyzers/anti-mechanical.js';
 import { analyzeInformationDensity, summarizeInformationDensity } from '../analyzers/information-density.js';
+// v2.0 Anti-detection analyzers
+import { analyzeLexicalDiversity } from '../analyzers/lexical-diversity.js';
+import { analyzeSyntacticPatterns } from '../analyzers/syntactic-patterns.js';
+import { analyzeExpressionMarkers } from '../analyzers/expression-markers.js';
+import { analyzeClusteringPatterns } from '../analyzers/clustering.js';
+import { calculateDetectionRisk } from '../analyzers/detection-risk.js';
 
 export interface AnalyzeCorpusParams {
   corpus_name: string;
@@ -196,6 +202,64 @@ export async function analyzeCorpus(params: AnalyzeCorpusParams): Promise<Analyz
       informationDensitySummary,
       'utf-8'
     );
+    
+    // ===== v2.0 ANTI-DETECTION ANALYZERS =====
+    console.error('Running v2.0 anti-detection analysis...');
+    
+    // Lexical diversity
+    const lexicalDiversityAnalysis = analyzeLexicalDiversity(combinedText);
+    await fs.writeFile(
+      path.join(analysisDir, 'lexical-diversity.json'),
+      JSON.stringify(lexicalDiversityAnalysis, null, 2),
+      'utf-8'
+    );
+    
+    // Syntactic patterns
+    const syntacticPatternsAnalysis = analyzeSyntacticPatterns(combinedText);
+    await fs.writeFile(
+      path.join(analysisDir, 'syntactic-patterns.json'),
+      JSON.stringify(syntacticPatternsAnalysis, null, 2),
+      'utf-8'
+    );
+    
+    // Expression markers
+    const expressionMarkersAnalysis = analyzeExpressionMarkers(combinedText);
+    await fs.writeFile(
+      path.join(analysisDir, 'expression-markers.json'),
+      JSON.stringify(expressionMarkersAnalysis, null, 2),
+      'utf-8'
+    );
+    
+    // Clustering patterns
+    const clusteringPatternsAnalysis = analyzeClusteringPatterns(combinedText);
+    await fs.writeFile(
+      path.join(analysisDir, 'clustering-patterns.json'),
+      JSON.stringify(clusteringPatternsAnalysis, null, 2),
+      'utf-8'
+    );
+    
+    // Detection risk assessment (combines all above)
+    const detectionRiskAnalysis = calculateDetectionRisk(
+      lexicalDiversityAnalysis,
+      syntacticPatternsAnalysis,
+      clusteringPatternsAnalysis,
+      expressionMarkersAnalysis
+    );
+    await fs.writeFile(
+      path.join(analysisDir, 'detection-risk.json'),
+      JSON.stringify(detectionRiskAnalysis, null, 2),
+      'utf-8'
+    );
+    
+    // Generate detection risk summary (human-readable)
+    const detectionRiskSummary = generateDetectionRiskSummary(detectionRiskAnalysis);
+    await fs.writeFile(
+      path.join(analysisDir, 'detection-risk-summary.md'),
+      detectionRiskSummary,
+      'utf-8'
+    );
+    
+    console.error('✅ v2.0 anti-detection analysis complete');
   }
   
   // Generate summary
@@ -309,6 +373,90 @@ function generateAntiMechanicalSummary(analysis: ReturnType<typeof analyzeAntiMe
   lines.push('| 65-84 | Natural - good variation |');
   lines.push('| 45-64 | Somewhat mechanical - needs more variation |');
   lines.push('| 0-44 | Mechanical - likely AI-generated or very formulaic |');
+  lines.push('');
+  
+  return lines.join('\n');
+}
+
+/**
+ * Generate human-readable detection risk summary
+ */
+function generateDetectionRiskSummary(analysis: ReturnType<typeof calculateDetectionRisk>): string {
+  const lines: string[] = [];
+  
+  lines.push('# AI Detection Risk Assessment');
+  lines.push('');
+  lines.push('*Evaluates AI detection risk based on peer-reviewed linguistic research (CMU PNAS 2025, AAAI 2025)*');
+  lines.push('');
+  
+  // Overall risk
+  lines.push('## Overall Risk');
+  lines.push('');
+  const riskEmoji = analysis.overallRisk === 'safe' ? '✅' : 
+                    analysis.overallRisk === 'moderate' ? '⚠️' : '❌';
+  lines.push(`${riskEmoji} **${analysis.overallRisk.toUpperCase()}** (Score: ${analysis.riskScore.toFixed(0)}/100)`);
+  lines.push('');
+  lines.push(analysis.summary);
+  lines.push('');
+  
+  // Risk score interpretation
+  lines.push('### Risk Score Interpretation');
+  lines.push('');
+  lines.push('| Score Range | Risk Level | Interpretation |');
+  lines.push('|-------------|------------|----------------|');
+  lines.push('| 0-30 | ✅ Safe | Low detection risk - strong human patterns |');
+  lines.push('| 31-60 | ⚠️ Moderate | Some AI-like patterns - refinement needed |');
+  lines.push('| 61-100 | ❌ High | High detection risk - significant AI markers |');
+  lines.push('');
+  
+  // Critical factors
+  if (analysis.criticalFactors.length > 0) {
+    lines.push('## ❌ Critical Risk Factors (Fix Immediately)');
+    lines.push('');
+    for (const factor of analysis.criticalFactors) {
+      lines.push(`### ${factor.metric}`);
+      lines.push('');
+      lines.push(`- **Corpus value:** ${factor.corpusValue.toFixed(2)}`);
+      lines.push(`- **Typical AI value:** ${factor.typicalAIValue.toFixed(2)}`);
+      lines.push(`- **Human benchmark:** ${factor.humanBenchmark.toFixed(2)}`);
+      lines.push(`- **Risk level:** ${factor.riskLevel.toUpperCase()}`);
+      lines.push('');
+      lines.push(`**Recommendation:** ${factor.recommendation}`);
+      lines.push('');
+    }
+  }
+  
+  // All factors comparison
+  lines.push('## All Detection Factors');
+  lines.push('');
+  lines.push('| Metric | Corpus | AI Typical | Human Benchmark | Ratio | Risk |');
+  lines.push('|--------|--------|-----------|-----------------|-------|------|');
+  
+  for (const factor of analysis.allFactors) {
+    const ratio = (factor.corpusValue / factor.typicalAIValue).toFixed(2);
+    const riskBadge = factor.riskLevel === 'safe' ? '✅' : 
+                      factor.riskLevel === 'moderate' ? '⚠️' : '❌';
+    lines.push(`| ${factor.metric} | ${factor.corpusValue.toFixed(2)} | ${factor.typicalAIValue.toFixed(2)} | ${factor.humanBenchmark.toFixed(2)} | ${ratio}x | ${riskBadge} |`);
+  }
+  lines.push('');
+  
+  // Action items
+  if (analysis.actionItems.length > 0) {
+    lines.push('## Action Items');
+    lines.push('');
+    for (let i = 0; i < analysis.actionItems.length; i++) {
+      lines.push(`${i + 1}. ${analysis.actionItems[i]}`);
+    }
+    lines.push('');
+  }
+  
+  // Footer
+  lines.push('---');
+  lines.push('');
+  lines.push('*Analysis based on peer-reviewed research:*');
+  lines.push('- *Carnegie Mellon PNAS 2025: AI writing patterns*');
+  lines.push('- *AAAI 2025: Lexical diversity markers*');
+  lines.push('- *MDPI 2025: Syntactic detection methods*');
   lines.push('');
   
   return lines.join('\n');
