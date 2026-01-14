@@ -206,6 +206,27 @@ templates/
 | `corpus_name` | Yes | Name from analyze_corpus |
 | `output_format` | No | llm, human, both |
 
+### get_voice_guide
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `corpus_name` | Yes | Name of analyzed corpus |
+| `format` | No | full, quick-ref, core-patterns, anti-patterns (default: core-patterns) |
+
+**Purpose:** Retrieve the generated voice guide and inject it into context for writing tasks.
+
+**Formats:**
+- `core-patterns` - Identity, openings, voice markers (recommended for most writing)
+- `quick-ref` - Metrics and forbidden phrases (quick checklist)
+- `anti-patterns` - What to avoid (for editing/reviewing)
+- `full` - Complete guide (20,000+ words)
+
+**Example workflow:**
+```
+1. Use get_voice_guide for "my-corpus" with format "core-patterns"
+2. Write a blog post about [topic] using the patterns above
+```
+
 ### generate_tov_guide
 
 Legacy basic guide generation. Use `generate_enhanced_guide` for production.

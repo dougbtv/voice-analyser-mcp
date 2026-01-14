@@ -18,6 +18,7 @@ import { collectCorpus, CollectCorpusParams } from './tools/collect-corpus.js';
 import { analyzeCorpus, AnalyzeCorpusParams } from './tools/analyze-corpus.js';
 import { generateTovGuide, GenerateTovGuideParams } from './tools/generate-guide.js';
 import { generateEnhancedGuide, EnhancedGuideParams } from './tools/generate-enhanced-guide.js';
+import { getVoiceGuide, GetVoiceGuideParams } from './tools/get-voice-guide.js';
 
 const server = new Server(
   {
@@ -127,6 +128,26 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ['corpus_name'],
       },
     },
+    {
+      name: 'get_voice_guide',
+      description: 'Retrieve generated voice guide for injection into context. Returns the voice guide in different formats for use in writing tasks.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          corpus_name: {
+            type: 'string',
+            description: 'Name of corpus to retrieve guide for'
+          },
+          format: {
+            type: 'string',
+            enum: ['full', 'quick-ref', 'core-patterns', 'anti-patterns'],
+            description: 'Format to return: "full" (complete guide), "quick-ref" (metrics and forbidden list), "core-patterns" (identity, openings, voice markers), "anti-patterns" (what to avoid). Default: core-patterns',
+            default: 'core-patterns'
+          }
+        },
+        required: ['corpus_name'],
+      },
+    },
   ],
 }));
 
@@ -185,7 +206,33 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           ]
         };
       }
-      
+
+      case 'get_voice_guide': {
+        const params = request.params.arguments as unknown as GetVoiceGuideParams;
+        const result = await getVoiceGuide(params);
+
+        if (!result.success) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({ error: result.error }, null, 2)
+              }
+            ]
+          };
+        }
+
+        // Return the voice guide content directly as text for easy injection
+        return {
+          content: [
+            {
+              type: 'text',
+              text: result.content
+            }
+          ]
+        };
+      }
+
       default:
         throw new McpError(
           ErrorCode.MethodNotFound,

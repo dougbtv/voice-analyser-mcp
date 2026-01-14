@@ -74,6 +74,35 @@ Analyse corpus "doug-combined"
 Generate enhanced guide for "doug-combined"
 ```
 
+### 5. Use the Voice Guide in Your Writing
+
+Once your voice guide is generated, you can inject it into context for any writing task:
+
+**Get core patterns (recommended for most tasks):**
+```
+Use get_voice_guide for "doug-writing" with format "core-patterns"
+```
+
+**Get quick reference (metrics and forbidden list):**
+```
+Use get_voice_guide for "doug-writing" with format "quick-ref"
+```
+
+**Get anti-patterns (what to avoid):**
+```
+Use get_voice_guide for "doug-writing" with format "anti-patterns"
+```
+
+**Get full guide:**
+```
+Use get_voice_guide for "doug-writing" with format "full"
+```
+
+Then write naturally:
+```
+Write a blog post about Kubernetes networking using my voice patterns above
+```
+
 ## What You'll Get
 
 ### Analysis Files
