@@ -15,7 +15,8 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "import": "node dist/scripts/import-local-files.js"
   },
   "keywords": [
     "mcp",
