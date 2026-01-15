@@ -38,8 +38,9 @@ async function extractTitle(content: string, filename: string): Promise<string> 
     return headingMatch[1].trim();
   }
 
-  // Fall back to filename
-  return path.basename(filename, '.md').replace(/-/g, ' ');
+  // Fall back to filename (strip any extension)
+  const basename = path.basename(filename);
+  return basename.replace(/\.(md|markdown|txt|html)$/i, '').replace(/-/g, ' ');
 }
 
 async function extractDate(content: string, filename: string): Promise<string> {
@@ -69,8 +70,11 @@ async function cleanContent(content: string): Promise<string> {
   return cleaned.trim();
 }
 
-async function getAllMarkdownFiles(dir: string): Promise<string[]> {
+async function getAllTextFiles(dir: string): Promise<string[]> {
   const files: string[] = [];
+
+  // Broad list of text-based file extensions to import
+  const validExtensions = ['.md', '.markdown', '.txt', '.html', '.htm', '.text'];
 
   async function walk(currentDir: string) {
     const entries = await fs.readdir(currentDir, { withFileTypes: true });
@@ -83,8 +87,12 @@ async function getAllMarkdownFiles(dir: string): Promise<string[]> {
         if (!entry.name.startsWith('.') && entry.name !== 'node_modules') {
           await walk(fullPath);
         }
-      } else if (entry.isFile() && entry.name.endsWith('.md')) {
-        files.push(fullPath);
+      } else if (entry.isFile()) {
+        // Check if file has a valid text-based extension
+        const ext = path.extname(entry.name).toLowerCase();
+        if (validExtensions.includes(ext)) {
+          files.push(fullPath);
+        }
       }
     }
   }
@@ -107,9 +115,9 @@ async function importLocalFiles(sourceDir: string, corpusName: string): Promise<
   await fs.mkdir(articlesDir, { recursive: true });
   console.log(`Created corpus directory: ${corpusDir}`);
 
-  // Get all markdown files
-  const sourceFiles = await getAllMarkdownFiles(sourceDir);
-  console.log(`Found ${sourceFiles.length} markdown files`);
+  // Get all text-based files
+  const sourceFiles = await getAllTextFiles(sourceDir);
+  console.log(`Found ${sourceFiles.length} text files`);
 
   const articles: ArticleMetadata[] = [];
   let totalWords = 0;
