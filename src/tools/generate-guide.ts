@@ -10,6 +10,7 @@ import type { SentenceAnalysis } from '../analyzers/sentence.js';
 import type { VoiceMarkers } from '../analyzers/voice-markers.js';
 import type { ParagraphAnalysis } from '../analyzers/paragraph.js';
 import type { PunctuationAnalysis } from '../analyzers/punctuation.js';
+import { getBaseDir } from '../utils/paths.js';
 
 export interface GenerateTovGuideParams {
   corpus_name: string;
@@ -25,10 +26,11 @@ export interface GenerateTovGuideResult {
 
 export async function generateTovGuide(params: GenerateTovGuideParams): Promise<GenerateTovGuideResult> {
   const { corpus_name, output_format = 'both', template = 'standard' } = params;
-  
-  const corpusDir = path.join(process.cwd(), 'corpus', corpus_name);
+
+  const baseDir = getBaseDir();
+  const corpusDir = path.join(baseDir, 'corpus', corpus_name);
   const analysisDir = path.join(corpusDir, 'analysis');
-  const templatesDir = path.join(process.cwd(), 'templates');
+  const templatesDir = path.join(baseDir, 'templates');
   const articlesDir = path.join(corpusDir, 'articles');
   
   await fs.mkdir(templatesDir, { recursive: true });

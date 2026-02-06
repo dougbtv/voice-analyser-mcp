@@ -5,6 +5,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
+import { getBaseDir } from '../utils/paths.js';
 
 export interface GetVoiceGuideParams {
   corpus_name: string;
@@ -23,7 +24,7 @@ export interface GetVoiceGuideResult {
 export async function getVoiceGuide(params: GetVoiceGuideParams): Promise<GetVoiceGuideResult> {
   const { corpus_name, format = 'core-patterns' } = params;
 
-  const templatesDir = path.join(process.cwd(), 'templates');
+  const templatesDir = path.join(getBaseDir(), 'templates');
   const guidePath = path.join(templatesDir, `writing_style_${corpus_name}.md`);
 
   try {

@@ -29,6 +29,28 @@ Add to your `claude_desktop_config.json`:
 
 Restart Claude Desktop after saving.
 
+### Configuration
+
+**Fixed Corpus Location (Optional)**
+
+By default, the MCP stores corpuses in a `corpus/` directory relative to where you run Claude. To use a fixed location (useful when working from multiple directories):
+
+```json
+{
+  "mcpServers": {
+    "voice-analysis": {
+      "command": "npx",
+      "args": ["-y", "@houtini/voice-analyser@latest"],
+      "env": {
+        "CORPUS_BASE_DIR": "/path/to/your/corpus/directory"
+      }
+    }
+  }
+}
+```
+
+This ensures all corpuses are stored in the same location regardless of your current working directory.
+
 ### Requirements
 
 - Node.js 20+

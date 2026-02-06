@@ -8,6 +8,7 @@ import path from 'path';
 import { fetchSitemap, fetchUrl, delay, filterUrls } from '../utils/crawler.js';
 import { extractArticleContent, ArticleMetadata } from '../utils/extractor.js';
 import { getCleaningStats, type CleaningReport } from '../utils/cleaner.js';
+import { getBaseDir } from '../utils/paths.js';
 
 export interface CollectCorpusParams {
   sitemap_url: string;
@@ -32,8 +33,8 @@ export interface CollectCorpusResult {
 
 export async function collectCorpus(params: CollectCorpusParams): Promise<CollectCorpusResult> {
   const { sitemap_url, output_name, max_articles = 100, article_pattern } = params;
-  
-  const corpusDir = path.join(process.cwd(), 'corpus', output_name);
+
+  const corpusDir = path.join(getBaseDir(), 'corpus', output_name);
   const articlesDir = path.join(corpusDir, 'articles');
   
   // Create directories

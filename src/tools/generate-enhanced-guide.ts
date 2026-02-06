@@ -32,6 +32,7 @@ import type { SyntacticPatternAnalysis } from '../analyzers/syntactic-patterns.j
 import type { ExpressionMarkerAnalysis } from '../analyzers/expression-markers.js';
 import type { ClusteringAnalysis } from '../analyzers/clustering.js';
 import type { DetectionRiskReport } from '../analyzers/detection-risk.js';
+import { getBaseDir } from '../utils/paths.js';
 
 export interface EnhancedGuideParams {
   corpus_name: string;
@@ -63,10 +64,11 @@ export interface ConsolidatedAnalysisV2 {
 
 export async function generateEnhancedGuide(params: EnhancedGuideParams): Promise<EnhancedGuideResult> {
   const { corpus_name, output_format = 'both' } = params;
-  
-  const corpusDir = path.join(process.cwd(), 'corpus', corpus_name);
+
+  const baseDir = getBaseDir();
+  const corpusDir = path.join(baseDir, 'corpus', corpus_name);
   const analysisDir = path.join(corpusDir, 'analysis');
-  const templatesDir = path.join(process.cwd(), 'templates');
+  const templatesDir = path.join(baseDir, 'templates');
   const articlesDir = path.join(corpusDir, 'articles');
   
   await fs.mkdir(templatesDir, { recursive: true });

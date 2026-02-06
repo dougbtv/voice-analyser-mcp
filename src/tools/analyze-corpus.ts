@@ -22,6 +22,7 @@ import { analyzeSyntacticPatterns } from '../analyzers/syntactic-patterns.js';
 import { analyzeExpressionMarkers } from '../analyzers/expression-markers.js';
 import { analyzeClusteringPatterns } from '../analyzers/clustering.js';
 import { calculateDetectionRisk } from '../analyzers/detection-risk.js';
+import { getBaseDir } from '../utils/paths.js';
 
 export interface AnalyzeCorpusParams {
   corpus_name: string;
@@ -36,8 +37,8 @@ export interface AnalyzeCorpusResult {
 
 export async function analyzeCorpus(params: AnalyzeCorpusParams): Promise<AnalyzeCorpusResult> {
   const { corpus_name, analysis_type = 'full' } = params;
-  
-  const corpusDir = path.join(process.cwd(), 'corpus', corpus_name);
+
+  const corpusDir = path.join(getBaseDir(), 'corpus', corpus_name);
   const articlesDir = path.join(corpusDir, 'articles');
   const analysisDir = path.join(corpusDir, 'analysis');
   
